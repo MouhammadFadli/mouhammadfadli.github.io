@@ -1,7 +1,4 @@
-# NOT ACTIVE. To enable deployment later, copy this file to
-#   .github/workflows/deploy.yml
-# in the repository, set the two env values below, and turn on
-# Settings > Pages > Build and deployment > Source: GitHub Actions.
+# Active GitHub Pages deployment workflow (Astro build + GitHub Actions deploy).
 name: Deploy to GitHub Pages
 
 on:
