@@ -1,0 +1,35 @@
+---
+import { ui } from '../i18n/ui';
+import type { Locale } from '../i18n/utils';
+interface Props {
+  lang: Locale;
+}
+const { lang } = Astro.props;
+const t = ui[lang];
+const year = new Date().getFullYear();
+---
+
+<footer class="footer theme-dark">
+  <div class="container footer__inner">
+    <p><span class="ltr">© {year} Muhammad Fadli.</span> {t.common.rights}</p>
+    <a class="text-link" href="#top">{t.common.backToTop}</a>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    padding-block: 2rem;
+    border-block-start: 1px solid var(--rule);
+    font-size: 0.9375rem;
+    color: var(--fg-muted);
+  }
+  .footer__inner {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .text-link {
+    color: var(--fg);
+  }
+</style>

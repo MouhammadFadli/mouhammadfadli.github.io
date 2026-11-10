@@ -1,0 +1,136 @@
+---
+import Photo from '../Photo.astro';
+import { ui } from '../../i18n/ui';
+import type { Locale } from '../../i18n/utils';
+interface Props {
+  lang: Locale;
+}
+const { lang } = Astro.props;
+const a = ui[lang].about;
+---
+
+<section id="about" class="section theme-dark about-section" aria-labelledby="about-title">
+  <div class="container">
+    <div class="section-head reveal">
+      <h2 id="about-title" class="section-title">{a.title}</h2>
+    </div>
+
+    <div class="about">
+      <Photo
+        class="about__photo reveal"
+        photo="aboutPortrait"
+        lang={lang}
+        ratio="4 / 5"
+        sizes="(max-width: 52rem) 100vw, 42vw"
+      />
+
+      <div class="about__body">
+        <p class="about__lead">{a.lead}</p>
+        {a.paragraphs.map((p) => <p class="about__text">{p}</p>)}
+
+        <div class="paths">
+          <p class="paths__label">{a.pathsLabel}</p>
+          <dl>
+            {a.paths.map((path) => (
+              <div class="path">
+                <dt>{path.title}</dt>
+                <dd>{path.text}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* The portrait's own olive-brown light (about #3c3321 to #4c4536) is carried
+     into the section as a soft glow behind it, and the photo's edges dissolve
+     into that glow, so the picture and the background read as one composition. */
+  .about-section {
+    background:
+      radial-gradient(ellipse 60% 75% at 24% 62%, rgb(92 80 50 / 0.42), transparent 70%),
+      linear-gradient(180deg, var(--c-charcoal) 0%, #15130f 100%);
+  }
+  :root:lang(ar) .about-section {
+    background:
+      radial-gradient(ellipse 60% 75% at 76% 62%, rgb(92 80 50 / 0.42), transparent 70%),
+      linear-gradient(180deg, var(--c-charcoal) 0%, #15130f 100%);
+  }
+  .about :global(.about__photo) {
+    -webkit-mask-image:
+      linear-gradient(to right, transparent 0, #000 16%, #000 84%, transparent 100%),
+      linear-gradient(to bottom, transparent 0, #000 8%, #000 62%, transparent 100%);
+    -webkit-mask-composite: source-in;
+    mask-image:
+      linear-gradient(to right, transparent 0, #000 16%, #000 84%, transparent 100%),
+      linear-gradient(to bottom, transparent 0, #000 8%, #000 62%, transparent 100%);
+    mask-composite: intersect;
+  }
+  .about :global(.about__photo .photo__frame) {
+    background: transparent;
+  }
+  .about {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    gap: clamp(2.5rem, 7vw, 6.5rem);
+    align-items: start;
+  }
+  .about__body {
+    display: grid;
+    gap: 1.5rem;
+    max-inline-size: var(--measure);
+  }
+  .about__lead {
+    font-size: clamp(1.4rem, 2.5vw, 2.1rem);
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: var(--track-display);
+  }
+  :root:lang(ar) .about__lead {
+    line-height: 1.7;
+  }
+  .about__text {
+    color: var(--fg-muted);
+  }
+  .paths {
+    margin-block-start: 1rem;
+  }
+  .paths__label {
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: var(--fg-muted);
+    padding-block-end: 0.75rem;
+  }
+  dl {
+    border-block-start: 1.5px solid var(--rule);
+  }
+  .path {
+    display: grid;
+    grid-template-columns: minmax(10rem, 0.9fr) minmax(0, 1.4fr);
+    gap: 0.25rem 1.5rem;
+    padding-block: 1rem;
+    border-block-end: 1px solid var(--rule);
+  }
+  dt {
+    font-weight: 800;
+    color: var(--fg);
+  }
+  dd {
+    color: var(--fg-muted);
+  }
+  @media (max-width: 52rem) {
+    .about {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .about__photo {
+      max-inline-size: 28rem;
+    }
+  }
+  @media (max-width: 34rem) {
+    .path {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

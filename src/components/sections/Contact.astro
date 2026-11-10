@@ -1,0 +1,138 @@
+---
+import Photo from '../Photo.astro';
+import { ui } from '../../i18n/ui';
+import { links, handles } from '../../data/site';
+import type { Locale } from '../../i18n/utils';
+interface Props {
+  lang: Locale;
+}
+const { lang } = Astro.props;
+const t = ui[lang];
+const c = t.contact;
+const channels = [
+  { label: c.instagramPersonal, text: handles.instagramPersonal, href: links.instagramPersonal },
+  { label: c.instagramStore, text: handles.instagramStore, href: links.instagramStore },
+  { label: c.github, text: handles.github, href: links.github },
+];
+---
+
+<section id="contact" class="section theme-wine" aria-labelledby="contact-title">
+  <div class="container contact">
+    <div class="contact__main">
+      <div class="section-head reveal">
+        <h2 id="contact-title" class="section-title">{c.title}</h2>
+        <p class="lead">{c.intro}</p>
+      </div>
+
+      <div class="reveal">
+        <p class="email-label">{c.emailLabel}</p>
+        <a class="email ltr" href={`mailto:${links.email}`}>{links.email}</a>
+      </div>
+
+      <ul class="channels reveal">
+        {channels.map((ch) => (
+          <li>
+            <a class="channel" href={ch.href} target="_blank" rel="noopener noreferrer">
+              <span class="channel__label">{ch.label}</span>
+              <span class="channel__text ltr">{ch.text}</span>
+              <span class="visually-hidden">{t.common.newTab}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    <Photo
+      class="contact__photo reveal"
+      photo="contactPortrait"
+      lang={lang}
+      ratio="4 / 5"
+      sizes="(max-width: 60rem) 80vw, 30vw"
+      widths={[480, 720, 1000]}
+    />
+  </div>
+</section>
+
+<style>
+  .contact {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 4fr);
+    gap: clamp(2.5rem, 6vw, 6rem);
+    align-items: end;
+  }
+  .contact__main {
+    display: grid;
+  }
+  .email-label {
+    color: var(--fg-muted);
+    font-weight: 700;
+  }
+  .email {
+    display: inline-block;
+    margin-block: 0.5rem clamp(2.5rem, 6vw, 4rem);
+    font-size: clamp(1.5rem, 4.4vw, 3.5rem);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    overflow-wrap: anywhere;
+    text-decoration-thickness: 3px;
+    text-underline-offset: 0.2em;
+  }
+  .email:hover {
+    text-decoration-thickness: 6px;
+  }
+  .channels {
+    border-block-start: 1px solid var(--rule);
+  }
+  .channel {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.25rem 2rem;
+    padding-block: 1.25rem;
+    border-block-end: 1px solid var(--rule);
+    text-decoration: none;
+    transition: padding-inline 0.25s var(--ease);
+  }
+  .channel:hover {
+    padding-inline: 0.75rem;
+  }
+  .channel__label {
+    color: var(--fg-muted);
+  }
+  .channel__text {
+    font-weight: 800;
+  }
+  /* The photo's olive light is pulled toward the section's wine with a soft
+     tint, and its edges fade into the background instead of ending in a hard
+     frame. The figure keeps its original size and 4 / 5 proportions. */
+  .contact :global(.contact__photo) {
+    max-inline-size: 28rem;
+    -webkit-mask-image:
+      linear-gradient(to right, transparent 0, #000 18%, #000 82%, transparent 100%),
+      linear-gradient(to bottom, transparent 0, #000 14%, #000 66%, transparent 100%);
+    -webkit-mask-composite: source-in;
+    mask-image:
+      linear-gradient(to right, transparent 0, #000 18%, #000 82%, transparent 100%),
+      linear-gradient(to bottom, transparent 0, #000 14%, #000 66%, transparent 100%);
+    mask-composite: intersect;
+  }
+  .contact :global(.contact__photo .photo__frame) {
+    background: transparent;
+  }
+  .contact :global(.contact__photo .photo__frame)::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--c-wine);
+    mix-blend-mode: multiply;
+    opacity: 0.42;
+    pointer-events: none;
+  }
+  @media (max-width: 60rem) {
+    .contact {
+      grid-template-columns: minmax(0, 1fr);
+      align-items: start;
+    }
+  }
+</style>

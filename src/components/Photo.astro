@@ -1,0 +1,48 @@
+---
+import { Image } from 'astro:assets';
+import { photos, type PhotoKey } from '../data/photos';
+import type { Locale } from '../i18n/utils';
+
+interface Props {
+  photo: PhotoKey;
+  lang: Locale;
+  /** Responsive `sizes` attribute describing how wide the image renders. */
+  sizes: string;
+  /** CSS aspect-ratio of the frame, e.g. "4 / 5". Omit to fill the parent. */
+  ratio?: string;
+  /** Above-the-fold image: loads eagerly with high priority. */
+  eager?: boolean;
+  caption?: boolean;
+  class?: string;
+  widths?: number[];
+}
+const {
+  photo,
+  lang,
+  sizes,
+  ratio,
+  eager = false,
+  caption = false,
+  class: className,
+  widths = [480, 800, 1200, 1600],
+} = Astro.props;
+const p = photos[photo] as (typeof photos)[PhotoKey] & { caption?: Record<Locale, string>; position?: string };
+---
+
+<figure class:list={['photo', className]}>
+  <div class="photo__frame" style={ratio ? `aspect-ratio: ${ratio}` : 'block-size: 100%'}>
+    <Image
+      src={p.src}
+      alt={p.alt[lang]}
+      widths={widths}
+      sizes={sizes}
+      format="webp"
+      quality={78}
+      loading={eager ? 'eager' : 'lazy'}
+      decoding={eager ? 'sync' : 'async'}
+      fetchpriority={eager ? 'high' : undefined}
+      style={`object-position: ${p.position ?? '50% 50%'}`}
+    />
+  </div>
+  {caption && p.caption && <figcaption>{p.caption[lang]}</figcaption>}
+</figure>

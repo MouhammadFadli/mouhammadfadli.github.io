@@ -1,0 +1,187 @@
+---
+import Photo from '../Photo.astro';
+import { ui } from '../../i18n/ui';
+import type { Locale } from '../../i18n/utils';
+
+interface Props {
+  lang: Locale;
+}
+const { lang } = Astro.props;
+const h = ui[lang].hero;
+---
+
+<section id="top" class="hero theme-dark" aria-labelledby="hero-name">
+  <div class="hero__text">
+    <h1 id="hero-name" class="hero__name ltr">{h.name}</h1>
+    <p class="hero__headline">{h.headline}</p>
+    <p class="hero__intro">{h.intro}</p>
+    <p class="hero__supporting">{h.supporting}</p>
+    <p class="hero__achievement">{h.achievement}</p>
+    <div class="hero__actions">
+      <a class="btn btn--solid" href="#contact">{h.ctaPrimary}</a>
+      <a class="btn btn--ghost" href="#journey">{h.ctaSecondary}</a>
+    </div>
+  </div>
+
+  <div class="hero__portrait">
+    <Photo
+      photo="heroPortrait"
+      lang={lang}
+      eager
+      sizes="(max-width: 52rem) 100vw, 50vw"
+      widths={[640, 960, 1280, 1600, 2000]}
+    />
+  </div>
+</section>
+
+<style>
+  /* Split editorial: text on one half, portrait on the other.
+     The grid mirrors automatically in RTL. */
+  .hero {
+    --text-start: max(var(--gutter), calc((100vw - var(--max)) / 2 + var(--gutter)));
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    min-block-size: max(38rem, min(100svh, 62rem));
+    overflow: hidden;
+  }
+  .hero__text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: clamp(1rem, 2vw, 1.6rem);
+    padding-block: calc(var(--header-h) + 3.5rem) 4.5rem;
+    padding-inline-start: var(--text-start);
+    padding-inline-end: clamp(1.5rem, 3vw, 3rem);
+  }
+  .hero__name {
+    font-size: clamp(3rem, min(6.6vw, calc((50vw - var(--text-start) - 3rem) / 6)), 7rem);
+    font-weight: 800;
+    line-height: 0.9;
+    letter-spacing: var(--track-name);
+    max-inline-size: 7em;
+    text-wrap: balance;
+  }
+  .hero__headline {
+    position: relative;
+    padding-block-start: 1.15rem;
+    font-size: clamp(1.5rem, 2.6vw, 2.6rem);
+    font-weight: 700;
+    line-height: var(--lh-display);
+    letter-spacing: var(--track-display);
+  }
+  .hero__headline::before {
+    content: '';
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    inline-size: clamp(4rem, 9vw, 6.5rem);
+    block-size: 3px;
+    background: var(--c-red);
+  }
+  .hero__intro {
+    max-inline-size: 34ch;
+    font-size: clamp(1.1rem, 1.4vw, 1.3rem);
+    line-height: 1.5;
+  }
+  :root:lang(ar) .hero__intro {
+    line-height: 1.85;
+    max-inline-size: 36ch;
+  }
+  .hero__supporting {
+    max-inline-size: 42ch;
+    color: var(--fg-muted);
+    font-size: 0.98rem;
+  }
+  .hero__achievement {
+    max-inline-size: 44ch;
+    padding-block-start: 1rem;
+    border-block-start: 1px solid var(--rule);
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: rgb(240 236 231 / 0.9);
+  }
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    margin-block-start: 0.4rem;
+  }
+
+  .hero__portrait {
+    position: relative;
+    min-block-size: 100%;
+    background: var(--c-warm);
+    isolation: isolate;
+  }
+  /* Edge fade lets the photograph melt into the text side. No filters are
+     applied to the face itself. */
+  .hero__portrait::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+      linear-gradient(90deg, var(--c-charcoal) 0%, rgb(17 17 17 / 0.45) 10%, transparent 34%),
+      linear-gradient(0deg, rgb(17 17 17 / 0.7), transparent 30%);
+  }
+  :root:lang(ar) .hero__portrait::after {
+    background:
+      linear-gradient(270deg, var(--c-charcoal) 0%, rgb(17 17 17 / 0.45) 10%, transparent 34%),
+      linear-gradient(0deg, rgb(17 17 17 / 0.7), transparent 30%);
+  }
+  .hero__portrait :global(.photo) {
+    position: absolute;
+    inset: 0;
+  }
+  .hero__portrait :global(.photo__frame) {
+    block-size: 100%;
+  }
+
+  /* One orchestrated entrance: text rises in sequence, the portrait settles. */
+  .hero__text > * {
+    animation: rise 0.9s var(--ease-out) both;
+  }
+  .hero__text > :nth-child(2) { animation-delay: 0.08s; }
+  .hero__text > :nth-child(3) { animation-delay: 0.16s; }
+  .hero__text > :nth-child(4) { animation-delay: 0.22s; }
+  .hero__text > :nth-child(5) { animation-delay: 0.28s; }
+  .hero__text > :nth-child(6) { animation-delay: 0.34s; }
+  .hero__portrait :global(img) {
+    animation: settle 1.6s var(--ease-out) both;
+  }
+  @keyframes rise {
+    from { opacity: 0; transform: translate3d(0, 22px, 0); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes settle {
+    from { opacity: 0.4; transform: scale(1.06); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  /* Mobile: portrait first, then the text, as one composed column. */
+  @media (max-width: 52rem) {
+    .hero {
+      grid-template-columns: minmax(0, 1fr);
+      min-block-size: 0;
+    }
+    .hero__portrait {
+      order: -1;
+      min-block-size: 0;
+      block-size: min(76svh, 138vw);
+      margin-block-start: var(--header-h);
+    }
+    .hero__portrait::after,
+    :root:lang(ar) .hero__portrait::after {
+      background: linear-gradient(0deg, var(--c-charcoal) 0%, rgb(17 17 17 / 0.1) 38%, transparent 60%);
+    }
+    .hero__text {
+      padding: 1.5rem var(--gutter) 3.5rem;
+      gap: 1.2rem;
+    }
+    .hero__name {
+      font-size: clamp(2.5rem, 12.6vw, 4.75rem);
+    }
+  }
+</style>

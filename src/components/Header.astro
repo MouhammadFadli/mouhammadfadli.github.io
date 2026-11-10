@@ -1,0 +1,264 @@
+---
+import { ui } from '../i18n/ui';
+import { homeUrl, otherLocale, type Locale } from '../i18n/utils';
+
+interface Props {
+  lang: Locale;
+}
+const { lang } = Astro.props;
+const t = ui[lang];
+const other = otherLocale(lang);
+const items = [
+  { id: 'about', label: t.nav.about },
+  { id: 'achievements', label: t.nav.achievements },
+  { id: 'journey', label: t.nav.journey },
+  { id: 'education', label: t.nav.education },
+  { id: 'media', label: t.nav.media },
+  { id: 'contact', label: t.nav.contact },
+];
+---
+
+<header class="header">
+  <div class="header__inner">
+    <a class="brand ltr" href="#top">MF<span class="visually-hidden"> Muhammad Fadli</span></a>
+
+    <nav id="site-nav" class="nav" aria-label={t.common.nav}>
+      <ul>
+        {items.map((item) => (
+          <li><a href={`#${item.id}`} data-section={item.id}>{item.label}</a></li>
+        ))}
+      </ul>
+    </nav>
+
+    <a
+      class="lang"
+      href={homeUrl(other)}
+      data-lang-switch
+      data-base={homeUrl(other)}
+      lang={t.common.langCode}
+      hreflang={t.common.langCode}
+      aria-label={`${t.common.langLabel}: ${t.common.langName}`}
+    >
+      {t.common.langName}
+    </a>
+
+    <button class="burger" type="button" aria-expanded="false" aria-controls="site-nav" data-menu-toggle>
+      <span class="visually-hidden">{t.common.menu}</span>
+      <span class="burger__bars" aria-hidden="true"></span>
+    </button>
+  </div>
+</header>
+
+<style>
+  .header {
+    position: fixed;
+    inset-block-start: 0;
+    inset-inline: 0;
+    z-index: 50;
+    block-size: var(--header-h);
+    background: rgb(17 17 17 / 0.96);
+    border-block-end: 1px solid rgb(240 236 231 / 0.1);
+  }
+  .header__inner {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    block-size: 100%;
+    padding-inline: var(--gutter);
+    max-inline-size: var(--max);
+    margin-inline: auto;
+  }
+  .brand {
+    font-weight: 800;
+    font-size: 1.35rem;
+    transition: letter-spacing .3s var(--ease), border-color .3s var(--ease);
+    letter-spacing: 0.02em;
+    text-decoration: none;
+    padding-block-end: 0.15rem;
+    border-block-end: 3px solid var(--c-red);
+    margin-inline-end: auto;
+  }
+  .nav ul {
+    display: flex;
+    gap: clamp(1rem, 2.2vw, 2rem);
+  }
+  .nav a {
+    display: inline-block;
+    padding-block: 0.5rem;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    text-decoration: none;
+    color: rgb(240 236 231 / 0.78);
+    transition: color 0.2s var(--ease);
+  }
+  .nav a { position:relative; }
+  .nav a::after { content:""; position:absolute; inset-inline-start:0; inset-block-end:.15rem; inline-size:100%; block-size:1px; background:var(--c-red); transform:scaleX(0); transform-origin:left; transition:transform .3s var(--ease); }
+  .nav a:hover::after, .nav a[aria-current='true']::after { transform:scaleX(1); }
+  .nav a:hover,
+  .nav a[aria-current='true'] {
+    color: var(--c-paper);
+  }
+  .nav a[aria-current='true'] {
+    text-decoration:none;
+  }
+  .lang {
+    padding: 0.4rem 0.9rem;
+    border: 1.5px solid rgb(240 236 231 / 0.5);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color 0.2s var(--ease), color 0.2s var(--ease);
+  }
+  .lang:hover {
+    background: var(--c-paper);
+    color: var(--c-charcoal);
+  }
+  .burger {
+    display: none;
+    position: relative;
+    inline-size: 2.75rem;
+    block-size: 2.75rem;
+    padding: 0;
+    background: none;
+    border: 0;
+    color: inherit;
+    cursor: pointer;
+  }
+  .burger__bars,
+  .burger__bars::before,
+  .burger__bars::after {
+    position: absolute;
+    inset-inline: 0.7rem;
+    block-size: 2px;
+    background: currentColor;
+    transition: transform 0.25s var(--ease), opacity 0.2s;
+  }
+  .burger__bars {
+    inset-block-start: calc(50% - 1px);
+  }
+  .burger__bars::before,
+  .burger__bars::after {
+    content: '';
+    inset-inline: 0;
+  }
+  .burger__bars::before {
+    transform: translateY(-7px);
+  }
+  .burger__bars::after {
+    transform: translateY(7px);
+  }
+  .burger[aria-expanded='true'] .burger__bars {
+    background: transparent;
+  }
+  .burger[aria-expanded='true'] .burger__bars::before {
+    transform: rotate(45deg);
+  }
+  .burger[aria-expanded='true'] .burger__bars::after {
+    transform: rotate(-45deg);
+  }
+
+  @media (max-width: 62rem) {
+    .header__inner {
+      gap: 0.75rem;
+    }
+    /* Without JavaScript the menu stays visible as a wrapping bar. */
+    :global(.js) .burger {
+      display: block;
+    }
+    :global(.js) .nav {
+      position: fixed;
+      inset-block-start: var(--header-h);
+      inset-inline: 0;
+      padding: 1rem var(--gutter) 2rem;
+      background: var(--c-charcoal);
+      border-block-end: 1px solid rgb(240 236 231 / 0.14);
+      display: none;
+    }
+    :global(.js) .nav[data-open] {
+      display: block;
+    }
+    :global(.js) .nav ul {
+      flex-direction: column;
+      gap: 0;
+    }
+    :global(.js) .nav a {
+      display: block;
+      padding-block: 0.9rem;
+      font-size: 1.125rem;
+      border-block-end: 1px solid rgb(240 236 231 / 0.12);
+    }
+    :global(html:not(.js)) .nav {
+      position: static;
+    }
+  }
+  @media (max-width: 62rem) {
+    :global(html:not(.js)) .header {
+      position: absolute;
+      block-size: auto;
+    }
+    :global(html:not(.js)) .header__inner {
+      flex-wrap: wrap;
+      padding-block: 0.75rem;
+    }
+    :global(html:not(.js)) .nav {
+      order: 5;
+      inline-size: 100%;
+    }
+    :global(html:not(.js)) .nav ul {
+      flex-wrap: wrap;
+    }
+  }
+</style>
+
+<script>
+  const toggle = document.querySelector<HTMLButtonElement>('[data-menu-toggle]');
+  const nav = document.getElementById('site-nav');
+
+  const setOpen = (open: boolean) => {
+    toggle?.setAttribute('aria-expanded', String(open));
+    nav?.toggleAttribute('data-open', open);
+  };
+
+  toggle?.addEventListener('click', () => setOpen(toggle.getAttribute('aria-expanded') !== 'true'));
+  nav?.addEventListener('click', (e) => {
+    if ((e.target as HTMLElement).closest('a')) setOpen(false);
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && toggle?.getAttribute('aria-expanded') === 'true') {
+      setOpen(false);
+      toggle.focus();
+    }
+  });
+
+  // Language switcher keeps the section the reader is currently in.
+  const langLink = document.querySelector<HTMLAnchorElement>('[data-lang-switch]');
+  const navLinks = document.querySelectorAll<HTMLAnchorElement>('[data-section]');
+  let current = location.hash.slice(1);
+
+  const sync = () => {
+    if (langLink) langLink.href = (langLink.dataset.base ?? '') + (current && current !== 'top' ? `#${current}` : '');
+    navLinks.forEach((a) => {
+      if (a.dataset.section === current) a.setAttribute('aria-current', 'true');
+      else a.removeAttribute('aria-current');
+    });
+  };
+
+  const sections = document.querySelectorAll<HTMLElement>('main > section[id]');
+  const observer = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          current = entry.target.id;
+          sync();
+        }
+      }
+    },
+    { rootMargin: '-45% 0px -50% 0px' },
+  );
+  sections.forEach((s) => observer.observe(s));
+  window.addEventListener('hashchange', () => {
+    current = location.hash.slice(1);
+    sync();
+  });
+  sync();
+</script>

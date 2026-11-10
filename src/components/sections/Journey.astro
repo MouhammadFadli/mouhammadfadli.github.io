@@ -1,0 +1,193 @@
+---
+import Photo from '../Photo.astro';
+import { ui } from '../../i18n/ui';
+import type { PhotoKey } from '../../data/photos';
+import type { Locale } from '../../i18n/utils';
+interface Props {
+  lang: Locale;
+}
+const { lang } = Astro.props;
+const j = ui[lang].journey;
+
+// Photos per chapter, in the same order as the dictionary chapters.
+const chapterPhotos: { id: string; photos: { key: PhotoKey; ratio: string; sizes: string; widths?: number[] }[] }[] = [
+  { id: 'training', photos: [{ key: 'journeyTraining', ratio: '4 / 3', sizes: '(max-width: 52rem) 92vw, 58vw' }] },
+  { id: 'competition', photos: [{ key: 'journeyCompetition', ratio: '3 / 2', sizes: '(max-width: 52rem) 92vw, 64vw', widths: [480, 800, 1200] }] },
+  {
+    id: 'development',
+    photos: [
+      { key: 'journeyDevCurrent', ratio: '2 / 3', sizes: '(max-width: 52rem) 55vw, 28vw', widths: [400, 640, 852] },
+      { key: 'journeyDevEarly', ratio: '3 / 4', sizes: '(max-width: 52rem) 40vw, 20vw', widths: [320, 480, 720] },
+    ],
+  },
+  { id: 'international', photos: [{ key: 'journeyIntl', ratio: '4 / 3', sizes: '(max-width: 52rem) 92vw, 58vw' }] },
+];
+---
+
+<section id="journey" class="section theme-dark" aria-labelledby="journey-title">
+  <div class="container">
+    <div class="section-head reveal">
+      <h2 id="journey-title" class="section-title">{j.title}</h2>
+    </div>
+
+    <div class="span reveal" role="group" aria-label={`${j.start.label}, ${j.start.text}. ${j.now.label}, ${j.now.text}.`}>
+      <div class="span__end">
+        <p class="span__label">{j.start.label}</p>
+        <p class="span__text">{j.start.text}</p>
+      </div>
+      <span class="span__line" aria-hidden="true"></span>
+      <div class="span__end span__end--now">
+        <p class="span__label">{j.now.label}</p>
+        <p class="span__text">{j.now.text}</p>
+      </div>
+    </div>
+
+    <div class="chapters">
+      {j.chapters.map((chapter, i) => (
+        <article class={`chapter chapter--${chapterPhotos[i].id}`}>
+          <div class="chapter__text reveal">
+            <h3>{chapter.title}</h3>
+            <p>{chapter.text}</p>
+          </div>
+          <div class="chapter__photos">
+            {chapterPhotos[i].photos.map((p, k) => (
+              <Photo
+                class={`chapter__photo reveal chapter__photo--${k}`}
+                photo={p.key}
+                lang={lang}
+                ratio={p.ratio}
+                sizes={p.sizes}
+                widths={p.widths}
+                caption
+              />
+            ))}
+          </div>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  /* 2014 to today: the only literal timeline on the page. */
+  .span {
+    display: flex;
+    align-items: flex-end;
+    gap: clamp(1rem, 3vw, 2.5rem);
+    margin-block-end: clamp(3.5rem, 8vw, 7rem);
+  }
+  .span__label {
+    font-size: clamp(2rem, 4.6vw, 3.75rem);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: var(--track-display);
+  }
+  :root:lang(ar) .span__label {
+    line-height: 1.3;
+  }
+  .span__text {
+    margin-block-start: 0.35rem;
+    color: var(--fg-muted);
+  }
+  .span__line {
+    position: relative;
+    flex: 1;
+    block-size: 1px;
+    margin-block-end: 1.1rem;
+    background: var(--rule);
+  }
+  .span__line::before,
+  .span__line::after {
+    content: '';
+    position: absolute;
+    inset-block-start: -5px;
+    inline-size: 11px;
+    block-size: 11px;
+    border-radius: 50%;
+    background: var(--c-red);
+  }
+  .span__line::before {
+    inset-inline-start: 0;
+  }
+  .span__line::after {
+    inset-inline-end: 0;
+    box-shadow: 0 0 0 4px var(--c-charcoal), 0 0 0 6px var(--c-red);
+  }
+  .span__end--now {
+    text-align: end;
+  }
+
+  .chapters {
+    display: grid;
+    gap: clamp(4rem, 9vw, 8.5rem);
+  }
+  .chapter {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 1.5rem clamp(1rem, 2vw, 2rem);
+    align-items: end;
+  }
+  .chapter__text {
+    position: relative;
+    padding-block-start: 1.15rem;
+  }
+  .chapter__text::before {
+    content: '';
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    inline-size: 3.5rem;
+    block-size: 3px;
+    background: var(--c-red);
+  }
+  .chapter__text h3 {
+    font-size: clamp(1.7rem, 3.2vw, 2.75rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: var(--track-display);
+  }
+  :root:lang(ar) .chapter__text h3 {
+    line-height: 1.4;
+  }
+  .chapter__text p {
+    margin-block-start: 0.9rem;
+    max-inline-size: 34ch;
+    color: var(--fg-muted);
+  }
+  .chapter__photos {
+    display: grid;
+    gap: 1.25rem;
+  }
+
+  /* Alternating compositions, mirrored automatically in RTL. */
+  .chapter--training .chapter__photos { grid-column: 1 / 8; grid-row: 1; }
+  .chapter--training .chapter__text { grid-column: 9 / 13; grid-row: 1; }
+
+  .chapter--competition .chapter__text { grid-column: 1 / 5; grid-row: 1; }
+  .chapter--competition .chapter__photos { grid-column: 5 / 13; grid-row: 1; }
+
+  .chapter--development .chapter__photos {
+    grid-column: 1 / 8;
+    grid-row: 1;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    align-items: end;
+  }
+  .chapter--development .chapter__text { grid-column: 9 / 13; grid-row: 1; }
+
+  .chapter--international .chapter__text { grid-column: 1 / 5; grid-row: 1; }
+  .chapter--international .chapter__photos { grid-column: 6 / 13; grid-row: 1; }
+
+  @media (max-width: 52rem) {
+    .chapter {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .chapter .chapter__photos,
+    .chapter .chapter__text {
+      grid-column: 1 / -1;
+      grid-row: auto;
+    }
+    .chapter .chapter__photos { order: 1; }
+    .chapter .chapter__text { order: 2; }
+    .chapter--development .chapter__photos { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); }
+  }
+</style>
