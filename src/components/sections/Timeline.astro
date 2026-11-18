@@ -1,0 +1,188 @@
+---
+import { ui } from '../../i18n/ui';
+import { athleticEvents, eventYear, formatEventDate } from '../../data/athletics';
+import type { Locale } from '../../i18n/utils';
+interface Props { lang: Locale }
+const { lang } = Astro.props;
+const t = ui[lang].timeline;
+const years = [...new Set(athleticEvents.map(eventYear))];
+const total = athleticEvents.length;
+const data = athleticEvents.map((e, i) => ({
+  kind: e.kind,
+  kindLabel: t.kinds[e.kind],
+  date: formatEventDate(e, lang),
+  name: e.name[lang],
+  result: e.result?.[lang] ?? '',
+  resultLabel: e.kind === 'belt' ? t.beltLabel : t.resultLabel,
+  note: e.kind === 'camp' ? t.noResult : '',
+  position: t.positionLabel.replace('{n}', String(i + 1)).replace('{m}', String(total)),
+}));
+---
+
+<section id="journey" class="section theme-dark" aria-labelledby="journey-title">
+  <div class="container">
+    <div class="section-head reveal">
+      <h2 id="journey-title" class="section-title">{t.title}</h2>
+      <p class="lead">{t.intro}</p>
+    </div>
+
+    <ul class="legend" aria-label={t.legendLabel}>
+      {(['competition', 'belt', 'camp'] as const).map((k) => (
+        <li><span class={`mark mark--${k}`} aria-hidden="true"></span>{t.kinds[k]}</li>
+      ))}
+    </ul>
+
+    <div class="tl-layout">
+      <nav class="years" aria-label={t.yearsLabel}>
+        <ul>
+          {years.map((y) => <li><a href={`#year-${y}`}>{y}</a></li>)}
+        </ul>
+      </nav>
+
+      <ol class="tl" aria-label={t.listLabel}>
+        {years.map((y) => (
+          <li class="year" id={`year-${y}`}>
+            <h3 class="year__label">{y}</h3>
+            <ol class="events">
+              {athleticEvents.map((e, i) => eventYear(e) === y && (
+                <li class={`ev ev--${e.kind}`}>
+                  <button type="button" class="ev__btn" data-ev={i} aria-haspopup="dialog">
+                    <span class={`mark mark--${e.kind}`} aria-hidden="true"></span>
+                    <span class="ev__body">
+                      <span class="ev__meta">{t.kinds[e.kind]}{e.kind !== 'start' && <> · <span>{data[i].date}</span></>}</span>
+                      <span class="ev__name">{e.name[lang]}</span>
+                    </span>
+                    {e.result && <span class="ev__result">{e.result[lang]}</span>}
+                  </button>
+                </li>
+              ))}
+            </ol>
+          </li>
+        ))}
+        <li class="year year--now">
+          <h3 class="year__label">{t.now.label}</h3>
+          <p class="now">{t.now.text}</p>
+        </li>
+      </ol>
+    </div>
+  </div>
+
+  <dialog class="modal" id="ev-dialog" aria-labelledby="ev-name">
+    <div class="modal__box">
+      <button type="button" class="modal__close" data-close aria-label={ui[lang].common.close}>×</button>
+      <p class="modal__kind" id="ev-kind"></p>
+      <h3 class="modal__name" id="ev-name"></h3>
+      <dl class="modal__facts">
+        <div><dt>{t.dateLabel}</dt><dd id="ev-date"></dd></div>
+        <div id="ev-result-row"><dt id="ev-result-label"></dt><dd id="ev-result"></dd></div>
+      </dl>
+      <p class="modal__note" id="ev-note"></p>
+      <div class="modal__nav">
+        <button type="button" class="btn btn--ghost" data-prev>{ui[lang].common.previous}</button>
+        <p class="modal__pos" id="ev-pos"></p>
+        <button type="button" class="btn btn--ghost" data-next>{ui[lang].common.next}</button>
+      </div>
+    </div>
+  </dialog>
+  <script type="application/json" id="ev-data" set:html={JSON.stringify(data)} />
+</section>
+
+<script>
+  const raw = document.getElementById('ev-data');
+  const dlg = document.getElementById('ev-dialog') as HTMLDialogElement | null;
+  if (raw && dlg) {
+    type Ev = { kind: string; kindLabel: string; date: string; name: string; result: string; resultLabel: string; note: string; position: string };
+    const data: Ev[] = JSON.parse(raw.textContent || '[]');
+    const $ = (id: string) => document.getElementById(id)!;
+    let index = 0;
+    let opener: HTMLElement | null = null;
+    const fill = (i: number) => {
+      index = (i + data.length) % data.length;
+      const e = data[index];
+      dlg.dataset.kind = e.kind;
+      $('ev-kind').textContent = e.kindLabel;
+      $('ev-name').textContent = e.name;
+      $('ev-date').textContent = e.date;
+      $('ev-result-row').hidden = !e.result;
+      $('ev-result-label').textContent = e.resultLabel;
+      $('ev-result').textContent = e.result;
+      $('ev-note').textContent = e.note;
+      $('ev-note').hidden = !e.note;
+      $('ev-pos').textContent = e.position;
+    };
+    document.querySelectorAll<HTMLButtonElement>('[data-ev]').forEach((b) =>
+      b.addEventListener('click', () => {
+        opener = b;
+        fill(Number(b.dataset.ev));
+        dlg.showModal();
+      }),
+    );
+    dlg.querySelector('[data-prev]')?.addEventListener('click', () => fill(index - 1));
+    dlg.querySelector('[data-next]')?.addEventListener('click', () => fill(index + 1));
+    dlg.querySelector('[data-close]')?.addEventListener('click', () => dlg.close());
+    dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
+    dlg.addEventListener('close', () => {
+      opener?.focus();
+      const target = document.querySelector<HTMLElement>(`[data-ev="${index}"]`);
+      (target ?? opener)?.focus();
+    });
+  }
+</script>
+
+<style>
+  .legend { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; margin-block-end: 2rem; font-size: 0.9rem; color: var(--fg-muted); }
+  .legend li { display: inline-flex; align-items: center; gap: 0.5rem; }
+  .mark { flex: none; inline-size: 0.8rem; block-size: 0.8rem; background: var(--c-red); }
+  .mark--belt { transform: rotate(45deg) scale(0.85); background: var(--c-paper); }
+  .mark--camp { border-radius: 50%; background: transparent; border: 2px solid var(--c-paper); }
+  .mark--start { inline-size: 1.4rem; block-size: 3px; align-self: center; background: var(--c-paper); }
+
+  .tl-layout { display: grid; grid-template-columns: 6rem minmax(0, 1fr); gap: clamp(1rem, 4vw, 4rem); align-items: start; }
+  .years { position: sticky; inset-block-start: calc(var(--header-h) + 1.5rem); }
+  .years ul { display: grid; gap: 0.15rem; }
+  .years a { display: block; padding: 0.3rem 0; font-weight: 700; font-size: 0.95rem; text-decoration: none; color: var(--fg-muted); border-inline-start: 2px solid var(--rule); padding-inline-start: 0.8rem; }
+  .years a:hover { color: var(--fg); border-color: var(--c-red); }
+
+  .tl { display: grid; gap: clamp(2rem, 5vw, 3.5rem); }
+  .year { display: grid; grid-template-columns: minmax(4.5rem, 7rem) minmax(0, 1fr); gap: 1rem; padding-block-start: 1.25rem; border-block-start: 1px solid var(--rule); }
+  .year__label { font-size: clamp(1.75rem, 3.4vw, 2.75rem); font-weight: 800; line-height: 1; letter-spacing: var(--track-display); font-variant-numeric: tabular-nums; }
+  .events { display: grid; gap: 0.6rem; }
+  .now { align-self: center; font-weight: 700; }
+
+  .ev__btn { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 1rem; inline-size: 100%; padding: 1rem 1.1rem; text-align: start; font: inherit; color: inherit; background: rgb(240 236 231 / 0.04); border: 1px solid var(--rule); cursor: default; transition: background-color 0.2s var(--ease), border-color 0.2s var(--ease); }
+  :global(.js) .ev__btn { cursor: pointer; }
+  .ev__btn:hover { background: rgb(240 236 231 / 0.09); border-color: var(--c-red); }
+  .ev__body { display: grid; gap: 0.15rem; }
+  .ev__meta { font-size: 0.8125rem; color: var(--fg-muted); }
+  .ev__name { font-weight: 700; line-height: 1.35; }
+  .ev__result { font-weight: 800; white-space: nowrap; padding-inline: 0.7rem; padding-block: 0.25rem; background: var(--c-wine); color: var(--c-paper); }
+  .ev--camp .ev__btn { border-style: dashed; }
+
+  .modal { inline-size: min(34rem, calc(100vw - 2rem)); padding: 0; color: var(--c-paper); background: var(--c-warm); border: 1px solid var(--rule); }
+  .modal::backdrop { background: rgb(0 0 0 / 0.72); }
+  .modal__box { position: relative; display: grid; gap: 1.1rem; padding: clamp(1.5rem, 4vw, 2.25rem); border-block-start: 4px solid var(--c-red); }
+  .modal__close { position: absolute; inset-block-start: 0.5rem; inset-inline-end: 0.5rem; inline-size: 2.75rem; block-size: 2.75rem; font-size: 1.75rem; line-height: 1; color: inherit; background: none; border: 0; cursor: pointer; }
+  .modal__kind { font-size: 0.8125rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: rgb(240 236 231 / 0.74); }
+  :global(:root:lang(ar)) .modal__kind { letter-spacing: 0; text-transform: none; }
+  .modal__name { font-size: clamp(1.5rem, 4vw, 2rem); line-height: 1.2; padding-inline-end: 2.5rem; }
+  .modal__facts { display: grid; gap: 0.75rem; margin: 0; }
+  .modal__facts div { display: grid; gap: 0.1rem; padding-block-start: 0.75rem; border-block-start: 1px solid var(--rule); }
+  .modal__facts dt { font-size: 0.8125rem; color: rgb(240 236 231 / 0.74); }
+  .modal__facts dd { margin: 0; font-size: 1.25rem; font-weight: 800; }
+  .modal__note { color: rgb(240 236 231 / 0.86); }
+  .modal__nav { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding-block-start: 0.75rem; border-block-start: 1px solid var(--rule); }
+  .modal__pos { font-size: 0.8125rem; text-align: center; color: rgb(240 236 231 / 0.74); }
+  .modal .btn { min-block-size: 2.75rem; padding: 0.4rem 1rem; }
+  /* Hide the dialog controls without JS: the list already shows every fact. */
+  [hidden] { display: none !important; }
+
+  @media (max-width: 52rem) {
+    .tl-layout { grid-template-columns: minmax(0, 1fr); }
+    .years { position: static; overflow-x: auto; }
+    .years ul { display: flex; gap: 0.5rem; }
+    .years a { border: 1px solid var(--rule); padding: 0.4rem 0.8rem; }
+    .year { grid-template-columns: minmax(0, 1fr); }
+    .ev__btn { grid-template-columns: auto minmax(0, 1fr); }
+    .ev__result { grid-column: 2; justify-self: start; }
+  }
+</style>

@@ -1,0 +1,21 @@
+---
+import { homeUrl } from '../i18n/utils';
+const en = homeUrl('en');
+const ar = homeUrl('ar');
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Muhammad Fadli</title>
+    <meta http-equiv="refresh" content={`0; url=${en}`} />
+    <link rel="canonical" href={en} />
+    <meta name="robots" content="noindex" />
+  </head>
+  <body style="font-family: system-ui, sans-serif; background: #111111; color: #f0ece7; padding: 2rem;">
+    <p><a href={en} style="color: inherit;">Continue in English</a></p>
+    <p dir="rtl" lang="ar"><a href={ar} style="color: inherit;">المتابعة بالعربية</a></p>
+  </body>
+</html>

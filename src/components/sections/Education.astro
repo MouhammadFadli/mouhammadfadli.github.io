@@ -1,0 +1,299 @@
+---
+import { Image } from 'astro:assets';
+import Photo from '../Photo.astro';
+import Icon from '../ui/Icon.astro';
+import storeLogo from '../../assets/fadli-sport-logo.png';
+import { ui } from '../../i18n/ui';
+import { links, handles } from '../../data/site';
+import { codeProjects, fadroxRepo } from '../../data/projects';
+import type { Locale } from '../../i18n/utils';
+interface Props {
+  lang: Locale;
+}
+const { lang } = Astro.props;
+const t = ui[lang];
+const e = t.education;
+---
+
+<section id="education" class="section theme-light" aria-labelledby="education-title">
+  <div class="container">
+    <div class="section-head reveal">
+      <h2 id="education-title" class="section-title">{e.title}</h2>
+    </div>
+
+    <div class="study reveal">
+      <div class="study__uni">
+        <p class="label">{e.universityLabel}</p>
+        <h3 class="study__name">{e.universityName}</h3>
+        <p class="muted">{e.universityText}</p>
+      </div>
+      <div>
+        <p class="label">{e.interestsLabel}</p>
+        <ul class="interests">
+          {e.interests.map((i) => <li>{i}</li>)}
+          <li class="learning"><span class="learning__label">{e.learning.label}</span> {e.learning.text}</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="projects">
+      <div class="brands__head reveal">
+        <h3 class="brands__title">{e.projectsTitle}</h3>
+        <p class="lead">{e.projectsText}</p>
+      </div>
+      <ul class="repos">
+        {codeProjects.map((p) => (
+          <li class="repo reveal">
+            <h4 class="repo__name ltr">{p.name}</h4>
+            <p class="repo__lang"><span class="muted">{e.languageLabel}:</span> <span class="ltr">{p.language}</span></p>
+            <a class="text-link" href={p.repo} target="_blank" rel="noopener noreferrer">
+              {e.repoCta} <span class="visually-hidden">{p.name} {t.common.newTab}</span>
+            </a>
+          </li>
+        ))}
+        <li class="repo repo--fadrox reveal">
+          <p class="label">{e.fadrox.tag}</p>
+          <h4 class="repo__name ltr">{e.fadrox.name}</h4>
+          <p class="repo__lang"><span class="muted">{e.languageLabel}:</span> <span class="ltr">{fadroxRepo.language}</span></p>
+          <p class="muted">{e.fadrox.text}</p>
+          <div class="repo__links">
+            <a class="text-link" href={fadroxRepo.repo} target="_blank" rel="noopener noreferrer">
+              {e.repoCta} <span class="visually-hidden">{e.fadrox.name} {t.common.newTab}</span>
+            </a>
+            <a class="text-link" href={links.fadroxSport} target="_blank" rel="noopener noreferrer">
+              {e.fadrox.cta} <span class="visually-hidden">{t.common.newTab}</span>
+            </a>
+            <button type="button" class="text-link as-link" data-open-fadrox hidden>{e.fadrox.details}</button>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <div class="brands">
+      <div class="brands__head reveal">
+        <h3 class="brands__title">{e.brandsTitle}</h3>
+        <p class="lead">{e.brandsText}</p>
+      </div>
+
+      <article class="project project--store reveal" aria-labelledby="store-name">
+        <div class="store__mark">
+          <Image
+            src={storeLogo}
+            alt={e.store.logoAlt}
+            format="png"
+            widths={[240, 360, 480]}
+            sizes="(max-width: 60rem) 14rem, 17rem"
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+        <div class="store__body">
+          <p class="label">{e.store.tag}</p>
+          <h4 id="store-name" class="project__name">{e.store.name}</h4>
+          <p class="project__role">{e.store.role}</p>
+          <p class="store__slogan">{e.store.slogan}</p>
+          <p>{e.store.text}</p>
+          <p class="muted-on-dark">{e.store.founded}</p>
+          <div class="repo__links">
+            <a class="text-link contact-link" href={links.instagramStore} target="_blank" rel="noopener noreferrer">
+              <Icon name="instagram" class="contact-link__icon" />{e.store.instagram} <span class="visually-hidden">{t.common.newTab}</span>
+            </a>
+            <a class="text-link contact-link" href={links.facebookStore} target="_blank" rel="noopener noreferrer">
+              <Icon name="facebook" class="contact-link__icon" />{e.store.facebook} <span class="visually-hidden">{t.common.newTab}</span>
+            </a>
+            <a class="text-link contact-link" href={links.whatsappStore} target="_blank" rel="noopener noreferrer">
+              <Icon name="whatsapp" class="contact-link__icon" />{e.store.whatsapp}: <span class="ltr">{handles.whatsappStore}</span> <span class="visually-hidden">{t.common.newTab}</span>
+            </a>
+          </div>
+        </div>
+      </article>
+    </div>
+  </div>
+
+  <dialog class="shots" id="fadrox-dialog" aria-labelledby="fadrox-dialog-title">
+    <div class="shots__box">
+      <button type="button" class="shots__close" data-close aria-label={t.common.close}>×</button>
+      <h3 id="fadrox-dialog-title" class="shots__title">{e.fadrox.detailsTitle}</h3>
+      <p class="muted">{e.fadrox.tag}</p>
+      <Photo photo="educationFadroxHome" lang={lang} ratio="1917 / 922" caption sizes="(max-width: 60rem) 92vw, 46rem" widths={[640, 960, 1280]} />
+      <Photo photo="mediaFadroxShop" lang={lang} ratio="1262 / 906" caption sizes="(max-width: 60rem) 92vw, 46rem" widths={[640, 960, 1262]} />
+    </div>
+  </dialog>
+</section>
+
+<script>
+  const dlg = document.getElementById('fadrox-dialog') as HTMLDialogElement | null;
+  const btn = document.querySelector<HTMLButtonElement>('[data-open-fadrox]');
+  if (dlg && btn) {
+    btn.hidden = false;
+    btn.addEventListener('click', () => dlg.showModal());
+    dlg.querySelector('[data-close]')?.addEventListener('click', () => dlg.close());
+    dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
+    dlg.addEventListener('close', () => btn.focus());
+  }
+</script>
+
+<style>
+  .label {
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: var(--fg-muted);
+  }
+  .muted {
+    color: var(--fg-muted);
+  }
+  .study {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: clamp(2rem, 6vw, 5rem);
+    padding-block: 2rem;
+    border-block: 1px solid var(--rule);
+  }
+  .study__uni {
+    display: grid;
+    gap: 0.5rem;
+    align-content: start;
+  }
+  .study__name {
+    max-inline-size: 26ch;
+    font-size: clamp(1.5rem, 2.8vw, 2.3rem);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: var(--track-display);
+  }
+  :root:lang(ar) .study__name {
+    line-height: 1.55;
+  }
+  .interests {
+    margin-block-start: 0.75rem;
+  }
+  .interests li {
+    padding-block: 0.65rem;
+    border-block-end: 1px solid var(--rule);
+    font-weight: 700;
+  }
+  .interests li:last-child {
+    border-block-end: 0;
+  }
+
+  .brands {
+    display: grid;
+    gap: 2.25rem;
+    margin-block-start: clamp(3.5rem, 8vw, 6rem);
+  }
+  .brands__head {
+    display: grid;
+    gap: 0.9rem;
+  }
+  .brands__title {
+    font-size: clamp(1.6rem, 3.2vw, 2.5rem);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: var(--track-display);
+  }
+  :root:lang(ar) .brands__title {
+    line-height: 1.5;
+  }
+  .brands__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    gap: clamp(1.5rem, 3.5vw, 3rem);
+    align-items: stretch;
+  }
+  /* The two brands look different on purpose: an outlined website project
+     next to a solid-black business card that carries the Fadli Sport logo. */
+  .project {
+    display: grid;
+    align-content: start;
+    gap: 0.75rem;
+  }
+  .project--site {
+    gap: 0;
+    border: 1.5px solid var(--c-charcoal);
+  }
+  .project--site :global(.photo) {
+    border-block-end: 1.5px solid var(--c-charcoal);
+  }
+  .project__body {
+    display: grid;
+    gap: 0.6rem;
+    padding: clamp(1.25rem, 3vw, 2rem);
+  }
+  /* The store card takes the logo's own near-black (#0a0a0a) so the supplied
+     artwork sits in the card instead of on top of it. */
+  .project--store {
+    --store-bg: #0a0a0a;
+    grid-template-rows: minmax(15rem, 1fr) auto;
+    gap: 0;
+    background: var(--store-bg);
+    color: var(--c-paper);
+    --link: var(--c-paper);
+  }
+  .store__mark {
+    display: grid;
+    place-items: center;
+    padding: clamp(1.75rem, 4vw, 3rem);
+    border-block-end: 1px solid rgb(240 236 231 / 0.16);
+  }
+  .store__mark :global(img) {
+    inline-size: auto;
+    block-size: clamp(11rem, 20vw, 16rem);
+  }
+  .store__body {
+    display: grid;
+    gap: 0.6rem;
+    padding: clamp(1.5rem, 3.4vw, 2.5rem);
+  }
+  .project--store .label {
+    color: rgb(240 236 231 / 0.86);
+  }
+  .project__name {
+    font-size: clamp(1.9rem, 3.6vw, 3rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: var(--track-display);
+  }
+  :root:lang(ar) .project__name {
+    line-height: 1.4;
+  }
+  .project__role {
+    font-weight: 800;
+  }
+  .project .text-link,
+  .store__body .text-link {
+    justify-self: start;
+    margin-block-start: 0.5rem;
+  }
+  @media (max-width: 60rem) {
+    .study,
+    .brands__grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  .learning { color: var(--fg-muted); font-weight: 600; }
+  .learning__label { display: inline-block; margin-inline-end: 0.4rem; padding: 0.05rem 0.5rem; font-size: 0.8125rem; font-weight: 800; color: var(--c-paper); background: var(--c-wine); }
+  .projects { display: grid; gap: 2rem; margin-block-start: clamp(3.5rem, 8vw, 6rem); }
+  .repos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(1rem, 2.5vw, 1.75rem); }
+  .repo { display: grid; align-content: start; gap: 0.5rem; padding: clamp(1.25rem, 3vw, 1.75rem); border: 1.5px solid var(--c-charcoal); transition: background-color 0.2s var(--ease), color 0.2s var(--ease); }
+  .repo:hover { background: var(--c-charcoal); color: var(--c-paper); --link: var(--c-paper); --fg-muted: rgb(240 236 231 / 0.74); }
+  .repo--fadrox { border-style: dashed; }
+  .repo__name { font-size: clamp(1.25rem, 2.2vw, 1.6rem); font-weight: 800; line-height: 1.2; }
+  .repo__lang { font-weight: 700; }
+  .repo__links { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; margin-block-start: 0.5rem; }
+  .as-link { padding: 0; font: inherit; font-weight: 700; background: none; border: 0; cursor: pointer; text-decoration: underline; }
+  .contact-link { display: inline-flex; align-items: center; gap: 0.5rem; min-block-size: 2.75rem; }
+  .contact-link :global(.contact-link__icon) { flex: none; inline-size: 1.15rem; block-size: 1.15rem; }
+  .store__slogan { font-weight: 800; font-size: 1.15rem; }
+  .muted-on-dark { color: rgb(240 236 231 / 0.74); font-size: 0.9375rem; }
+  .project--store { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); grid-template-rows: none; }
+  .project--store .store__mark { border-block-end: 0; border-inline-end: 1px solid rgb(240 236 231 / 0.16); }
+  .project--store .repo__links :global(.text-link), .project--store .text-link { margin: 0; }
+  [hidden] { display: none !important; }
+  .shots { inline-size: min(52rem, calc(100vw - 2rem)); max-block-size: calc(100dvh - 2rem); padding: 0; color: var(--c-paper); background: var(--c-warm); border: 1px solid rgb(240 236 231 / 0.2); --fg-muted: rgb(240 236 231 / 0.78); }
+  .shots::backdrop { background: rgb(0 0 0 / 0.75); }
+  .shots__box { position: relative; display: grid; gap: 1rem; padding: clamp(1.25rem, 3vw, 2rem); border-block-start: 4px solid var(--c-red); }
+  .shots__title { font-size: 1.5rem; padding-inline-end: 2.75rem; }
+  .shots__close { position: absolute; inset-block-start: 0.5rem; inset-inline-end: 0.5rem; inline-size: 2.75rem; block-size: 2.75rem; font-size: 1.75rem; color: inherit; background: none; border: 0; cursor: pointer; }
+  @media (max-width: 60rem) { .repos { grid-template-columns: minmax(0, 1fr); } .project--store { grid-template-columns: minmax(0, 1fr); } .project--store .store__mark { border-inline-end: 0; border-block-end: 1px solid rgb(240 236 231 / 0.16); } }
+</style>

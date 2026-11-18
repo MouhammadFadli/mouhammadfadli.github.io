@@ -1,0 +1,197 @@
+---
+import { Image, getImage } from 'astro:assets';
+import { ui } from '../../i18n/ui';
+import { gallery } from '../../data/gallery';
+import { photos } from '../../data/photos';
+import type { Locale } from '../../i18n/utils';
+interface Props { lang: Locale }
+const { lang } = Astro.props;
+const t = ui[lang];
+const m = t.media;
+
+const items = await Promise.all(
+  gallery.map(async (g) => {
+    const p = photos[g.photo] as (typeof photos)[typeof g.photo] & { caption?: Record<Locale, string>; position?: string };
+    const full = await getImage({ src: p.src, width: Math.min(1600, p.src.width), format: 'webp', quality: 80 });
+    const wide = p.src.width / p.src.height > 1.2;
+    return {
+      ...g,
+      p,
+      wide,
+      full: full.src,
+      fullW: full.attributes.width,
+      fullH: full.attributes.height,
+      label: m.categories.find((c) => c.id === g.category)?.title ?? '',
+    };
+  }),
+);
+---
+
+<section id="media" class="section theme-warm" aria-labelledby="media-title" data-counter={JSON.stringify(m.counter)}>
+  <div class="container">
+    <div class="section-head reveal">
+      <h2 id="media-title" class="section-title">{m.title}</h2>
+      <p class="lead">{m.intro}</p>
+    </div>
+
+    <div class="filters" role="group" aria-label={m.filtersLabel} data-filters hidden>
+      <button type="button" class="chip" data-filter="all" aria-pressed="true">{m.all}</button>
+      {m.categories.map((c) => <button type="button" class="chip" data-filter={c.id} aria-pressed="false">{c.title}</button>)}
+    </div>
+
+    <ul class="grid" data-grid>
+      {items.map((it) => (
+        <li class:list={['cell', { 'cell--wide': it.wide }]} data-category={it.category}>
+          <button
+            type="button"
+            class="cell__btn"
+            data-full={it.full}
+            data-w={it.fullW}
+            data-h={it.fullH}
+            data-alt={it.p.alt[lang]}
+            data-caption={it.p.caption?.[lang] ?? ''}
+            aria-label={`${m.open}: ${it.p.alt[lang]}`}
+          >
+            <Image
+              src={it.p.src}
+              alt=""
+              widths={[360, 560, 800]}
+              sizes={it.wide ? '(max-width: 44rem) 92vw, 48vw' : '(max-width: 44rem) 46vw, 24vw'}
+              format="webp"
+              quality={74}
+              loading="lazy"
+              decoding="async"
+              style={`object-position: ${it.p.position ?? '50% 50%'}`}
+            />
+            <span class="cell__tag">{it.label}</span>
+          </button>
+        </li>
+      ))}
+    </ul>
+    <p class="visually-hidden" role="status" aria-live="polite" data-status></p>
+  </div>
+
+  <dialog class="lb" data-lightbox aria-label={m.lightboxLabel}>
+    <div class="lb__bar">
+      <p class="lb__count" data-count></p>
+      <button type="button" class="lb__btn" data-close aria-label={t.common.close}>×</button>
+    </div>
+    <div class="lb__stage">
+      <button type="button" class="lb__btn lb__arrow" data-prev aria-label={t.common.previous}><span aria-hidden="true">‹</span></button>
+      <figure class="lb__fig">
+        <img alt="" data-img />
+        <figcaption data-cap></figcaption>
+      </figure>
+      <button type="button" class="lb__btn lb__arrow" data-next aria-label={t.common.next}><span aria-hidden="true">›</span></button>
+    </div>
+  </dialog>
+</section>
+
+<script>
+  const root = document.getElementById('media');
+  const grid = root?.querySelector<HTMLElement>('[data-grid]');
+  const filters = root?.querySelector<HTMLElement>('[data-filters]');
+  const dlg = root?.querySelector<HTMLDialogElement>('[data-lightbox]');
+  if (root && grid && filters && dlg) {
+    filters.hidden = false;
+    const rtl = document.documentElement.dir === 'rtl';
+    const counterTpl = JSON.parse(root.dataset.counter || '"{n} / {m}"') as string;
+    const cells = [...grid.querySelectorAll<HTMLLIElement>('.cell')];
+    const status = root.querySelector<HTMLElement>('[data-status]')!;
+
+    filters.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-filter]');
+      if (!btn) return;
+      filters.querySelectorAll('[data-filter]').forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+      const f = btn.dataset.filter;
+      let shown = 0;
+      cells.forEach((c) => {
+        const on = f === 'all' || c.dataset.category === f;
+        c.hidden = !on;
+        if (on) shown++;
+      });
+      status.textContent = `${btn.textContent}: ${shown}`;
+    });
+
+    const visible = () => cells.filter((c) => !c.hidden).map((c) => c.querySelector<HTMLButtonElement>('.cell__btn')!);
+    const img = dlg.querySelector<HTMLImageElement>('[data-img]')!;
+    const cap = dlg.querySelector<HTMLElement>('[data-cap]')!;
+    const count = dlg.querySelector<HTMLElement>('[data-count]')!;
+    let list: HTMLButtonElement[] = [];
+    let i = 0;
+    let opener: HTMLElement | null = null;
+    const show = (n: number) => {
+      i = (n + list.length) % list.length;
+      const b = list[i];
+      img.src = b.dataset.full!;
+      img.width = Number(b.dataset.w);
+      img.height = Number(b.dataset.h);
+      img.alt = b.dataset.alt || '';
+      cap.textContent = b.dataset.caption || '';
+      count.textContent = counterTpl.replace('{n}', String(i + 1)).replace('{m}', String(list.length));
+      const nx = new Image();
+      nx.src = list[(i + 1) % list.length].dataset.full!;
+    };
+    grid.addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLButtonElement>('.cell__btn');
+      if (!b) return;
+      opener = b;
+      list = visible();
+      show(list.indexOf(b));
+      dlg.showModal();
+    });
+    // Physical arrows: in RTL the "next" photo lies to the left.
+    const next = () => show(i + 1);
+    const prev = () => show(i - 1);
+    dlg.querySelector('[data-next]')!.addEventListener('click', next);
+    dlg.querySelector('[data-prev]')!.addEventListener('click', prev);
+    dlg.querySelector('[data-close]')!.addEventListener('click', () => dlg.close());
+    dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
+    dlg.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') (rtl ? prev : next)();
+      if (e.key === 'ArrowLeft') (rtl ? next : prev)();
+    });
+    dlg.addEventListener('close', () => (list[i] ?? opener)?.focus());
+  }
+</script>
+
+<style>
+  .filters { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-block-end: 2rem; }
+  .chip { min-block-size: 2.75rem; padding: 0.4rem 1.2rem; font: inherit; font-weight: 700; color: var(--c-paper); background: transparent; border: 1.5px solid rgb(240 236 231 / 0.5); cursor: pointer; transition: background-color 0.2s var(--ease), color 0.2s var(--ease); }
+  .chip:hover { border-color: var(--c-paper); }
+  .chip[aria-pressed='true'] { background: var(--c-paper); border-color: var(--c-paper); color: var(--c-charcoal); }
+
+  .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-flow: dense; gap: clamp(0.5rem, 1.4vw, 1rem); }
+  .cell { aspect-ratio: 4 / 5; }
+  .cell--wide { grid-column: span 2; aspect-ratio: auto; }
+  .cell[hidden] { display: none; }
+  .cell__btn { position: relative; display: block; inline-size: 100%; block-size: 100%; min-block-size: 100%; padding: 0; overflow: hidden; background: rgb(240 236 231 / 0.06); border: 0; cursor: zoom-in; }
+  .cell--wide .cell__btn { aspect-ratio: 2 / 1; }
+  .cell__btn img { inline-size: 100%; block-size: 100%; object-fit: cover; transition: transform 0.6s var(--ease-out); }
+  .cell__btn:hover img { transform: scale(1.04); }
+  .cell__tag { position: absolute; inset-block-end: 0; inset-inline-start: 0; padding: 0.3rem 0.7rem; font-size: 0.75rem; font-weight: 700; color: var(--c-paper); background: rgb(17 17 17 / 0.85); }
+
+  .lb { inline-size: 100vw; max-inline-size: 100vw; block-size: 100dvh; max-block-size: 100dvh; margin: 0; padding: 0; color: var(--c-paper); background: rgb(10 10 10 / 0.97); border: 0; }
+  .lb[open] { display: grid; grid-template-rows: auto minmax(0, 1fr); }
+  .lb::backdrop { background: #000; }
+  .lb__bar { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 1rem; }
+  .lb__count { font-size: 0.875rem; color: rgb(240 236 231 / 0.8); }
+  .lb__btn { inline-size: 3rem; block-size: 3rem; font-size: 2rem; line-height: 1; color: var(--c-paper); background: none; border: 1.5px solid rgb(240 236 231 / 0.4); cursor: pointer; }
+  .lb__btn:hover { background: var(--c-paper); color: var(--c-charcoal); }
+  .lb__stage { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 0.75rem; padding: 0 0.75rem 1rem; min-block-size: 0; }
+  .lb__fig { display: grid; justify-items: center; gap: 0.6rem; min-block-size: 0; max-block-size: 100%; }
+  .lb__fig img { max-inline-size: 100%; max-block-size: calc(100dvh - 9rem); inline-size: auto; block-size: auto; object-fit: contain; }
+  .lb__fig figcaption { font-size: 0.9375rem; color: rgb(240 236 231 / 0.85); text-align: center; }
+  /* Arrows keep their physical sides: previous on the left in LTR, on the right in RTL. */
+  :global(:root:lang(ar)) .lb__arrow span { display: inline-block; transform: scaleX(-1); }
+  [hidden] { display: none !important; }
+
+  @media (max-width: 62rem) { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (max-width: 44rem) {
+    .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .lb__stage { grid-template-columns: 1fr 1fr; grid-template-rows: minmax(0, 1fr) auto; }
+    .lb__fig { grid-row: 1; grid-column: 1 / -1; }
+    .lb__arrow { grid-row: 2; inline-size: 100%; }
+    .lb__fig img { max-block-size: calc(100dvh - 13rem); }
+  }
+</style>

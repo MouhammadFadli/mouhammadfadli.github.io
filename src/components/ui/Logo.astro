@@ -1,0 +1,21 @@
+---
+// Official MF mark (supplied brand sheet, used unmodified; only cut out to transparent PNG).
+// dark = cream + burgundy for dark surfaces, light = ink + burgundy for light surfaces.
+import { Image } from 'astro:assets';
+import dark from '../../assets/brand/mf-mark-dark.png';
+import light from '../../assets/brand/mf-mark-light.png';
+interface Props { class?: string; variant?: 'dark' | 'light'; eager?: boolean }
+const { class: className, variant = 'dark', eager = false } = Astro.props;
+const src = variant === 'light' ? light : dark;
+---
+<Image
+  class={className}
+  src={src}
+  alt=""
+  widths={[96, 192, 376]}
+  sizes="(max-width: 40rem) 96px, 192px"
+  format="webp"
+  quality={92}
+  loading={eager ? 'eager' : 'lazy'}
+  decoding="async"
+/>
