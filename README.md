@@ -21,21 +21,29 @@ npm run build      # static site in dist/
 npm run preview    # serve dist/ locally to test the production build
 ```
 
-## Deploy later to GitHub Pages (not done yet)
+## Deployment
 
-Nothing is deployed and no workflow is active. When you are ready:
+The site is published at **https://mouhammadfadli.github.io/** using GitHub Pages.
+The repository is the user-site repository `MouhammadFadli/mouhammadfadli.github.io`
+and production deployments are automated through GitHub Actions on pushes to `main`
+(and can also be started manually with `workflow_dispatch`).
 
-1. Create the repository. Two common setups:
-   - **User site**: repo named `mouhammadfadli.github.io`. Use `BASE_PATH=/`.
-   - **Project site**: any other repo name, for example `portfolio`. Use `BASE_PATH=/portfolio/`
-     (the address becomes `https://mouhammadfadli.github.io/portfolio/`).
-2. Copy `deploy/github-pages.yml.example` to `.github/workflows/deploy.yml` and set `SITE_URL` and `BASE_PATH`.
-3. In the repo: Settings > Pages > Source: **GitHub Actions**. Push to `main`.
+The workflow in `.github/workflows/deploy.yml` uses Node.js `22.23.4` or newer,
+installs the locked dependencies with `npm ci`, builds the static site with
+`npm run build`, uploads `dist/` as the Pages artifact, and deploys it.
+GitHub Pages must use **Settings > Pages > Build and deployment > Source: GitHub Actions**.
 
-To build by hand instead: `SITE_URL=https://mouhammadfadli.github.io BASE_PATH=/ npm run build`
-and publish the contents of `dist/`.
+The production build uses `SITE_URL=https://mouhammadfadli.github.io` and
+`BASE_PATH=/`. To reproduce it locally:
 
-`SITE_URL` and `BASE_PATH` drive canonical links, hreflang, Open Graph image URLs, the sitemap and robots.txt.
+```bash
+SITE_URL=https://mouhammadfadli.github.io BASE_PATH=/ npm run build
+npm run preview
+```
+
+For local development, use `npm install` followed by `npm run dev`;
+open `http://localhost:4321/`. See the build commands above for a production preview.
+
 
 ## Where things live
 
